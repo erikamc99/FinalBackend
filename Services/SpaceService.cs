@@ -16,7 +16,7 @@ namespace Muuki.Services
         {
             var space = new Space
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = MongoDB.Bson.ObjectId.GenerateNewId(),
                 UserId = userId,
                 Name = name,
                 Animals = new List<Animal>

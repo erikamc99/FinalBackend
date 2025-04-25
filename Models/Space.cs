@@ -1,3 +1,4 @@
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace Muuki.Models
@@ -5,7 +6,7 @@ namespace Muuki.Models
     public class Space
     {
         [BsonId]
-        public string Id { get; set; }
+        public ObjectId Id { get; set; }
 
         [BsonElement("userId")]
         public string UserId { get; set; }
