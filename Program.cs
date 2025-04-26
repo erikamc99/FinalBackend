@@ -60,7 +60,11 @@ var mongoContext = app.Services.GetRequiredService<MongoContext>();
 var seeder = new ConditionSettingsSeeder(mongoContext);
 await seeder.SeedAsync();
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseRouting();
 
 app.UseMiddleware<ErrorHandlerMiddleware>();
