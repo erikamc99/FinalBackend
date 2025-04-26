@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using DotNetEnv;
+using Muuki.Services.Interfaces;
+using MuukiAPI.Middleware;
 
 Env.Load();
 
@@ -19,6 +21,8 @@ builder.Services.AddSingleton<MongoContext>();
 builder.Services.AddSingleton<JwtUtils>();
 builder.Services.AddScoped<SpaceService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<IAnimalService, AnimalService>();
+builder.Services.AddScoped<IBreedService, BreedService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -52,6 +56,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
