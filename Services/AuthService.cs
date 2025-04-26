@@ -26,6 +26,7 @@ namespace Muuki.Services
             {
                 Id = MongoDB.Bson.ObjectId.GenerateNewId(),
                 Username = dto.Username,
+                Name = dto.Name,
                 Email = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
             };

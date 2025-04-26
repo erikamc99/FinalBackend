@@ -17,7 +17,6 @@ namespace Muuki.Utils
 
         public string GenerateToken(User user)
         {
-            // Obtener la clave secreta de la variable de entorno
             var secret = Environment.GetEnvironmentVariable("JWT_SECRET");
             if (string.IsNullOrEmpty(secret))
             {

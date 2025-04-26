@@ -1,9 +1,10 @@
 namespace Muuki.DTOs
 {
-    public class RegisterDto
+    public class UpdateProfileDto
     {
-        public required string Username { get; set; }
+        public string AvatarUrl { get; set; }
         public required string Name { get; set; }
+        public required string Username { get; set; }
         public required string Email { get; set; }
         public required string Password { get; set; }
     }
