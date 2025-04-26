@@ -9,7 +9,7 @@ namespace Muuki.Models
         public ObjectId Id { get; set; }
 
         [BsonElement("userId")]
-        public string UserId { get; set; }
+        public required string UserId { get; set; }
 
         [BsonElement("name")]
         public string Name { get; set; }
