@@ -19,7 +19,7 @@ namespace Muuki.Services
             return await _context.Spaces.Find(s => s.UserId == userId).ToListAsync();
         }
 
-        public async Task<Space> GetSpaceById(string userId, string spaceId)
+        public async Task<Space?> GetSpaceById(string userId, string spaceId)
         {
             return await _context.Spaces.Find(s => s.Id == spaceId && s.UserId == userId).FirstOrDefaultAsync();
         }
@@ -42,26 +42,28 @@ namespace Muuki.Services
             return space;
         }
 
-        public async Task UpdateSpace(string spaceId, UpdateSpaceDto dto)
+        public async Task UpdateSpace(string userId, string spaceId, UpdateSpaceDto dto)
         {
-            var update = Builders<Space>.Update.Set(s => s.Name, dto.Name);
-            var result = await _context.Spaces.UpdateOneAsync(s => s.Id == spaceId, update);
+            var result = await _context.Spaces.UpdateOneAsync(
+                s => s.Id == spaceId && s.UserId == userId,
+                Builders<Space>.Update.Set(s => s.Name, dto.Name)
+            );
 
             if (result.MatchedCount == 0)
-                throw new Exception("Espacio no encontrado");
+                throw new Exception("Espacio no encontrado o no autorizado");
         }
 
-        public async Task DeleteSpace(string spaceId)
+        public async Task DeleteSpace(string userId, string spaceId)
         {
-            var result = await _context.Spaces.DeleteOneAsync(s => s.Id == spaceId);
+            var result = await _context.Spaces.DeleteOneAsync(s => s.Id == spaceId && s.UserId == userId);
             if (result.DeletedCount == 0)
-                throw new Exception("Espacio no encontrado");
+                throw new Exception("Espacio no encontrado o no autorizado");
         }
 
         public async Task<Space> AddAnimal(string userId, string spaceId, AddAnimalDto dto)
         {
             var space = await GetSpaceById(userId, spaceId);
-            if (space == null) throw new Exception("Espacio no encontrado");
+            if (space == null) throw new Exception("Espacio no encontrado o no autorizado");
 
             if (!Constants.AllowedAnimalTypes.Contains(dto.Type))
                 throw new Exception("Tipo de animal no permitido");
@@ -74,38 +76,38 @@ namespace Muuki.Services
             };
 
             space.Animals.Add(animal);
-            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId, space);
+            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId && s.UserId == userId, space);
             return space;
         }
 
         public async Task RemoveAnimal(string userId, string spaceId, string animalId)
         {
             var space = await GetSpaceById(userId, spaceId);
-            if (space == null) throw new Exception("Espacio no encontrado");
+            if (space == null) throw new Exception("Espacio no encontrado o no autorizado");
 
             var animal = space.Animals.FirstOrDefault(a => a.Id == animalId);
             if (animal == null) throw new Exception("Animal no encontrado");
 
             space.Animals.Remove(animal);
-            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId, space);
+            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId && s.UserId == userId, space);
         }
 
         public async Task UpdateAnimalQuantity(string userId, string spaceId, UpdateAnimalQuantityDto dto)
         {
             var space = await GetSpaceById(userId, spaceId);
-            if (space == null) throw new Exception("Espacio no encontrado");
+            if (space == null) throw new Exception("Espacio no encontrado o no autorizado");
 
             var animal = space.Animals.FirstOrDefault(a => a.Id == dto.AnimalId);
             if (animal == null) throw new Exception("Animal no encontrado");
 
             animal.Quantity = dto.Quantity;
-            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId, space);
+            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId && s.UserId == userId, space);
         }
 
         public async Task AddBreed(string userId, string spaceId, AddBreedDto dto)
         {
             var space = await GetSpaceById(userId, spaceId);
-            if (space == null) throw new Exception("Espacio no encontrado");
+            if (space == null) throw new Exception("Espacio no encontrado o no autorizado");
 
             var animal = space.Animals.FirstOrDefault(a => a.Id == dto.AnimalId);
             if (animal == null) throw new Exception("Animal no encontrado");
@@ -113,19 +115,19 @@ namespace Muuki.Services
             if (!animal.Breeds.Contains(dto.Breed))
                 animal.Breeds.Add(dto.Breed);
 
-            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId, space);
+            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId && s.UserId == userId, space);
         }
 
         public async Task RemoveBreed(string userId, string spaceId, RemoveBreedDto dto)
         {
             var space = await GetSpaceById(userId, spaceId);
-            if (space == null) throw new Exception("Espacio no encontrado");
+            if (space == null) throw new Exception("Espacio no encontrado o no autorizado");
 
             var animal = space.Animals.FirstOrDefault(a => a.Id == dto.AnimalId);
             if (animal == null) throw new Exception("Animal no encontrado");
 
             animal.Breeds.Remove(dto.Breed);
-            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId, space);
+            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId && s.UserId == userId, space);
         }
     }
 }

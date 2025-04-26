@@ -20,7 +20,7 @@ namespace Muuki.Controllers
 
         private string GetUserId()
         {
-            return User.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+            return User.FindFirstValue("id") ?? throw new Exception("Usuario no autenticado");
         }
 
         [HttpGet]
@@ -48,14 +48,14 @@ namespace Muuki.Controllers
         [HttpPut("{spaceId}")]
         public async Task<IActionResult> UpdateSpace(string spaceId, UpdateSpaceDto dto)
         {
-            await _spaceService.UpdateSpace(spaceId, dto);
+            await _spaceService.UpdateSpace(GetUserId(), spaceId, dto);
             return Ok("Espacio actualizado");
         }
 
         [HttpDelete("{spaceId}")]
         public async Task<IActionResult> DeleteSpace(string spaceId)
         {
-            await _spaceService.DeleteSpace(spaceId);
+            await _spaceService.DeleteSpace(GetUserId(), spaceId);
             return Ok("Espacio eliminado");
         }
 
