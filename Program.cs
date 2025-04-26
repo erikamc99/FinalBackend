@@ -7,6 +7,7 @@ using System.Text;
 using DotNetEnv;
 using Muuki.Services.Interfaces;
 using MuukiAPI.Middleware;
+using Muuki.Seed;
 
 Env.Load();
 
@@ -23,6 +24,7 @@ builder.Services.AddScoped<SpaceService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IAnimalService, AnimalService>();
 builder.Services.AddScoped<IBreedService, BreedService>();
+builder.Services.AddScoped<ConditionSettingsService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -53,6 +55,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+var mongoContext = app.Services.GetRequiredService<MongoContext>();
+var seeder = new ConditionSettingsSeeder(mongoContext);
+await seeder.SeedAsync();
 
 app.UseHttpsRedirection();
 app.UseRouting();

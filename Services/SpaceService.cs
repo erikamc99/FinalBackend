@@ -129,5 +129,50 @@ namespace Muuki.Services
             animal.Breeds.Remove(dto.Breed);
             await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId && s.UserId == userId, space);
         }
+
+        public async Task<bool> CheckSpaceConditions(string spaceId, ConditionEntry currentEntry)
+        {
+            var space = await _context.Spaces.Find(s => s.Id == spaceId).FirstOrDefaultAsync();
+            if (space == null) throw new Exception("Space not found");
+
+            var allAnimals = space.Animals;
+
+            var idealSettings = new List<ConditionSettings>();
+
+            foreach (var animal in allAnimals)
+            {
+                var setting = await _context.ConditionSettings
+                    .Find(c => c.Type == animal.Type && c.Breed == animal.Breeds.FirstOrDefault())
+                    .FirstOrDefaultAsync();
+
+                if (setting != null)
+                    idealSettings.Add(setting);
+            }
+
+            if (!idealSettings.Any())
+                throw new Exception("No ConditionSettings found for animals in this space");
+
+            var avgTempMin = idealSettings.Average(c => c.TemperatureMin);
+            var avgTempMax = idealSettings.Average(c => c.TemperatureMax);
+            var avgHumidityMin = idealSettings.Average(c => c.HumidityMin);
+            var avgHumidityMax = idealSettings.Average(c => c.HumidityMax);
+            var avgPollutionMax = idealSettings.Average(c => c.PollutionMax);
+
+            var evaluator = new ConditionEvaluatorService();
+
+            var ideal = new ConditionSettings
+            {
+                Type = "DefaultType",
+                Breed = "DefaultBreed",
+                TemperatureMin = avgTempMin,
+                TemperatureMax = avgTempMax,
+                HumidityMin = avgHumidityMin,
+                HumidityMax = avgHumidityMax,
+                PollutionMax = avgPollutionMax
+            };
+
+            return evaluator.IsConditionOk(currentEntry, ideal);
+        }
+
     }
 }
