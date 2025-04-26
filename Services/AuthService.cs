@@ -42,5 +42,37 @@ namespace Muuki.Services
 
             return _jwt.GenerateToken(user);
         }
+
+        public async Task<User> GetProfile(string userId)
+        {
+            var objectId = MongoDB.Bson.ObjectId.Parse(userId);
+            var user = await _context.Users.Find(u => u.Id == objectId).FirstOrDefaultAsync();
+            if (user == null) throw new Exception("Usuario no encontrado");
+            return user;
+        }
+
+        public async Task<User> UpdateProfile(string userId, UpdateProfileDto dto)
+        {
+            var objectId = MongoDB.Bson.ObjectId.Parse(userId);
+            var update = Builders<User>.Update
+                .Set(u => u.AvatarUrl, dto.AvatarUrl)
+                .Set(u => u.Name, dto.Name)
+                .Set(u => u.Username, dto.Username)
+                .Set(u => u.Email, dto.Email);
+
+            if (!string.IsNullOrEmpty(dto.Password))
+            {
+                var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+                update = update.Set(u => u.PasswordHash, passwordHash);
+            }
+
+            var result = await _context.Users.UpdateOneAsync(
+                u => u.Id == objectId,
+                update);
+
+            if (result.MatchedCount == 0) throw new Exception("Usuario no encontrado");
+
+            return await GetProfile(userId);
+        }
     }
 }

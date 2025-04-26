@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using Muuki.Models;
 
@@ -10,8 +9,11 @@ namespace Muuki.Data
 
         public MongoContext(IConfiguration config)
         {
-            var client = new MongoClient(config["MongoSettings:Connection"]);
-            _database = client.GetDatabase(config["MongoSettings:Database"]);
+            var connection = Environment.GetEnvironmentVariable("MONGO_CONNECTION");
+            var dbName = Environment.GetEnvironmentVariable("MONGO_DATABASE");
+
+            var client = new MongoClient(connection);
+            _database = client.GetDatabase(dbName);
         }
 
         public IMongoCollection<Space> Spaces => _database.GetCollection<Space>("Spaces");
