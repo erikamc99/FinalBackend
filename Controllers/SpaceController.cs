@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Muuki.Services;
 using Muuki.DTOs;
+using Muuki.Services;
+using System.Security.Claims;
 
 namespace Muuki.Controllers
 {
@@ -22,54 +23,75 @@ namespace Muuki.Controllers
             return User.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetSpaces()
+        {
+            var spaces = await _spaceService.GetSpacesByUser(GetUserId());
+            return Ok(spaces);
+        }
+
+        [HttpGet("{spaceId}")]
+        public async Task<IActionResult> GetSpace(string spaceId)
+        {
+            var space = await _spaceService.GetSpaceById(GetUserId(), spaceId);
+            if (space == null) return NotFound("Espacio no encontrado");
+            return Ok(space);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateSpace(CreateSpaceDto dto)
         {
-            var userId = GetUserId();
-            if (userId == null) return Unauthorized();
+            var space = await _spaceService.CreateSpace(GetUserId(), dto);
+            return Ok(space);
+        }
 
-            await _spaceService.CreateSpace(userId, dto);
-            return Ok("Espacio creado");
+        [HttpPut("{spaceId}")]
+        public async Task<IActionResult> UpdateSpace(string spaceId, UpdateSpaceDto dto)
+        {
+            await _spaceService.UpdateSpace(spaceId, dto);
+            return Ok("Espacio actualizado");
         }
 
         [HttpDelete("{spaceId}")]
         public async Task<IActionResult> DeleteSpace(string spaceId)
         {
-            var userId = GetUserId();
-            if (userId == null) return Unauthorized();
-
-            await _spaceService.DeleteSpace(userId, spaceId);
+            await _spaceService.DeleteSpace(spaceId);
             return Ok("Espacio eliminado");
-        }
-
-        [HttpPut("{spaceId}")]
-        public async Task<IActionResult> UpdateSpaceName(string spaceId, UpdateSpaceDto dto)
-        {
-            var userId = GetUserId();
-            if (userId == null) return Unauthorized();
-
-            await _spaceService.UpdateSpaceName(userId, spaceId, dto.Name);
-            return Ok("Nombre actualizado");
         }
 
         [HttpPost("{spaceId}/animals")]
         public async Task<IActionResult> AddAnimal(string spaceId, AddAnimalDto dto)
         {
-            var userId = GetUserId();
-            if (userId == null) return Unauthorized();
-
-            await _spaceService.AddAnimal(userId, spaceId, dto);
-            return Ok("Animal(es) añadido(s)");
+            var space = await _spaceService.AddAnimal(GetUserId(), spaceId, dto);
+            return Ok(space);
         }
 
-        [HttpDelete("{spaceId}/animals")]
-        public async Task<IActionResult> RemoveAnimal(string spaceId, RemoveAnimalDto dto)
+        [HttpDelete("{spaceId}/animals/{animalId}")]
+        public async Task<IActionResult> RemoveAnimal(string spaceId, string animalId)
         {
-            var userId = GetUserId();
-            if (userId == null) return Unauthorized();
-
-            await _spaceService.RemoveAnimal(userId, spaceId, dto);
+            await _spaceService.RemoveAnimal(GetUserId(), spaceId, animalId);
             return Ok("Animal eliminado");
+        }
+
+        [HttpPut("{spaceId}/animals/quantity")]
+        public async Task<IActionResult> UpdateAnimalQuantity(string spaceId, UpdateAnimalQuantityDto dto)
+        {
+            await _spaceService.UpdateAnimalQuantity(GetUserId(), spaceId, dto);
+            return Ok("Cantidad actualizada");
+        }
+
+        [HttpPost("{spaceId}/animals/breeds")]
+        public async Task<IActionResult> AddBreed(string spaceId, AddBreedDto dto)
+        {
+            await _spaceService.AddBreed(GetUserId(), spaceId, dto);
+            return Ok("Raza añadida");
+        }
+
+        [HttpDelete("{spaceId}/animals/breeds")]
+        public async Task<IActionResult> RemoveBreed(string spaceId, RemoveBreedDto dto)
+        {
+            await _spaceService.RemoveBreed(GetUserId(), spaceId, dto);
+            return Ok("Raza eliminada");
         }
     }
 }

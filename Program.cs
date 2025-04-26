@@ -15,8 +15,6 @@ var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
 var mongoConnection = Environment.GetEnvironmentVariable("MONGO_CONNECTION");
 var mongoDatabase = Environment.GetEnvironmentVariable("MONGO_DATABASE");
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddSingleton<MongoContext>();
 builder.Services.AddSingleton<JwtUtils>();
 builder.Services.AddScoped<SpaceService>();
@@ -46,7 +44,6 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

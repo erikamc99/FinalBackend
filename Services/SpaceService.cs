@@ -1,6 +1,6 @@
 using Muuki.Models;
-using Muuki.DTOs;
 using Muuki.Data;
+using Muuki.DTOs;
 using MongoDB.Driver;
 
 namespace Muuki.Services
@@ -14,111 +14,118 @@ namespace Muuki.Services
             _context = context;
         }
 
-        public async Task CreateSpace(string userId, CreateSpaceDto dto)
+        public async Task<List<Space>> GetSpacesByUser(string userId)
         {
+            return await _context.Spaces.Find(s => s.UserId == userId).ToListAsync();
+        }
+
+        public async Task<Space> GetSpaceById(string userId, string spaceId)
+        {
+            return await _context.Spaces.Find(s => s.Id == spaceId && s.UserId == userId).FirstOrDefaultAsync();
+        }
+
+        public async Task<Space> CreateSpace(string userId, CreateSpaceDto dto)
+        {
+            if (!Constants.AllowedSpaceTypes.Contains(dto.Type))
+                throw new Exception("Tipo de espacio no permitido");
+
             var space = new Space
             {
-                Id = MongoDB.Bson.ObjectId.GenerateNewId(),
+                Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(),
                 UserId = userId,
                 Name = dto.Name,
-                Animals = new List<Animal>(),
-                Conditions = new List<ConditionEntry>()
+                Type = dto.Type,
+                Animals = new List<Animal>()
             };
 
             await _context.Spaces.InsertOneAsync(space);
+            return space;
         }
 
-        public async Task DeleteSpace(string userId, string spaceId)
+        public async Task UpdateSpace(string spaceId, UpdateSpaceDto dto)
         {
-            var filter = Builders<Space>.Filter.And(
-                Builders<Space>.Filter.Eq(s => s.Id, MongoDB.Bson.ObjectId.Parse(spaceId)),
-                Builders<Space>.Filter.Eq(s => s.UserId, userId)
-            );
+            var update = Builders<Space>.Update.Set(s => s.Name, dto.Name);
+            var result = await _context.Spaces.UpdateOneAsync(s => s.Id == spaceId, update);
 
-            await _context.Spaces.DeleteOneAsync(filter);
+            if (result.MatchedCount == 0)
+                throw new Exception("Espacio no encontrado");
         }
 
-        public async Task UpdateSpaceName(string userId, string spaceId, string newName)
+        public async Task DeleteSpace(string spaceId)
         {
-            var filter = Builders<Space>.Filter.And(
-                Builders<Space>.Filter.Eq(s => s.Id, MongoDB.Bson.ObjectId.Parse(spaceId)),
-                Builders<Space>.Filter.Eq(s => s.UserId, userId)
-            );
-
-            var update = Builders<Space>.Update.Set(s => s.Name, newName);
-            await _context.Spaces.UpdateOneAsync(filter, update);
+            var result = await _context.Spaces.DeleteOneAsync(s => s.Id == spaceId);
+            if (result.DeletedCount == 0)
+                throw new Exception("Espacio no encontrado");
         }
 
-        public async Task AddAnimal(string userId, string spaceId, AddAnimalDto dto)
+        public async Task<Space> AddAnimal(string userId, string spaceId, AddAnimalDto dto)
         {
-            var space = await _context.Spaces.Find(s => s.Id == MongoDB.Bson.ObjectId.Parse(spaceId) && s.UserId == userId).FirstOrDefaultAsync();
+            var space = await GetSpaceById(userId, spaceId);
             if (space == null) throw new Exception("Espacio no encontrado");
 
-            for (int i = 0; i < dto.Count; i++)
+            if (!Constants.AllowedAnimalTypes.Contains(dto.Type))
+                throw new Exception("Tipo de animal no permitido");
+
+            var animal = new Animal
             {
-                space.Animals.Add(new Animal { Type = dto.Type, Breed = dto.Breed });
-            }
-
-            var filter = Builders<Space>.Filter.Eq(s => s.Id, space.Id);
-            var update = Builders<Space>.Update.Set(s => s.Animals, space.Animals);
-
-            await _context.Spaces.UpdateOneAsync(filter, update);
-        }
-
-        public async Task RemoveAnimal(string userId, string spaceId, RemoveAnimalDto dto)
-        {
-            var filter = Builders<Space>.Filter.And(
-                Builders<Space>.Filter.Eq(s => s.Id, MongoDB.Bson.ObjectId.Parse(spaceId)),
-                Builders<Space>.Filter.Eq(s => s.UserId, userId)
-            );
-
-            var update = Builders<Space>.Update.PullFilter(s => s.Animals,
-                a => a.Type == dto.Type && a.Breed == dto.Breed);
-
-            await _context.Spaces.UpdateOneAsync(filter, update);
-        }
-
-        public async Task CreateSpaceWithSensorData(string userId, string name)
-        {
-            var space = new Space
-            {
-                Id = MongoDB.Bson.ObjectId.GenerateNewId(),
-                UserId = userId,
-                Name = name,
-                Animals = new List<Animal>
-                {
-                    new Animal { Type = "Vaca", Breed = "Holstein" },
-                    new Animal { Type = "Vaca", Breed = "Jersey" },
-                    new Animal { Type = "Pollo", Breed = "Leghorn" }
-                },
-                Conditions = GenerateConditions()
+                Type = dto.Type,
+                Quantity = dto.Quantity,
+                Breeds = dto.Breeds.Count > 0 ? dto.Breeds : Constants.DefaultBreeds
             };
 
-            await _context.Spaces.InsertOneAsync(space);
+            space.Animals.Add(animal);
+            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId, space);
+            return space;
         }
 
-        private List<ConditionEntry> GenerateConditions()
+        public async Task RemoveAnimal(string userId, string spaceId, string animalId)
         {
-            var list = new List<ConditionEntry>();
-            var rng = new Random();
-            var start = DateTime.UtcNow.AddMonths(-6);
+            var space = await GetSpaceById(userId, spaceId);
+            if (space == null) throw new Exception("Espacio no encontrado");
 
-            for (var date = start; date <= DateTime.UtcNow; date = date.AddDays(1))
-            {
-                list.Add(new ConditionEntry
-                {
-                    Timestamp = date,
-                    Humidity = rng.Next(40, 80),
-                    Temperature = rng.Next(15, 30),
-                    Pollution = rng.Next(5, 20),
-                    FoodKg = rng.Next(10, 30),
-                    WaterLiters = rng.Next(20, 60),
-                    FoodFrequencyDays = 2,
-                    WaterFrequencyDays = 1
-                });
-            }
+            var animal = space.Animals.FirstOrDefault(a => a.Id == animalId);
+            if (animal == null) throw new Exception("Animal no encontrado");
 
-            return list;
+            space.Animals.Remove(animal);
+            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId, space);
+        }
+
+        public async Task UpdateAnimalQuantity(string userId, string spaceId, UpdateAnimalQuantityDto dto)
+        {
+            var space = await GetSpaceById(userId, spaceId);
+            if (space == null) throw new Exception("Espacio no encontrado");
+
+            var animal = space.Animals.FirstOrDefault(a => a.Id == dto.AnimalId);
+            if (animal == null) throw new Exception("Animal no encontrado");
+
+            animal.Quantity = dto.Quantity;
+            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId, space);
+        }
+
+        public async Task AddBreed(string userId, string spaceId, AddBreedDto dto)
+        {
+            var space = await GetSpaceById(userId, spaceId);
+            if (space == null) throw new Exception("Espacio no encontrado");
+
+            var animal = space.Animals.FirstOrDefault(a => a.Id == dto.AnimalId);
+            if (animal == null) throw new Exception("Animal no encontrado");
+
+            if (!animal.Breeds.Contains(dto.Breed))
+                animal.Breeds.Add(dto.Breed);
+
+            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId, space);
+        }
+
+        public async Task RemoveBreed(string userId, string spaceId, RemoveBreedDto dto)
+        {
+            var space = await GetSpaceById(userId, spaceId);
+            if (space == null) throw new Exception("Espacio no encontrado");
+
+            var animal = space.Animals.FirstOrDefault(a => a.Id == dto.AnimalId);
+            if (animal == null) throw new Exception("Animal no encontrado");
+
+            animal.Breeds.Remove(dto.Breed);
+            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId, space);
         }
     }
 }

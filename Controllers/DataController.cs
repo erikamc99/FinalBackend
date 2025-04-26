@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+/* using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Muuki.Services;
 
@@ -23,4 +23,4 @@ namespace Muuki.Controllers
             return Ok("Espacio con datos simulados creado.");
         }
     }
-}
+} */
