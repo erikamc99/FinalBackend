@@ -19,5 +19,7 @@ namespace Muuki.Data
         public IMongoCollection<Space> Spaces => _database.GetCollection<Space>("Spaces");
         public IMongoCollection<User> Users => _database.GetCollection<User>("Users");
         public IMongoCollection<ConditionSettings> ConditionSettings => _database.GetCollection<ConditionSettings>("ConditionSettings");
+        public IMongoCollection<SpaceConditionEntry> SpaceConditions => _database.GetCollection<SpaceConditionEntry>("SpaceConditions");
+
     }
 }

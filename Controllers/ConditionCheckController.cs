@@ -67,6 +67,17 @@ namespace Muuki.Controllers
 
             var isOk = evaluator.IsConditionOk(currentEntry, ideal);
 
+            var conditionToSave = new SpaceConditionEntry
+            {
+                SpaceId = space.Id,
+                Timestamp = currentEntry.Timestamp,
+                Humidity = currentEntry.Humidity,
+                Temperature = currentEntry.Temperature,
+                Pollution = currentEntry.Pollution
+            };
+
+            await _context.SpaceConditions.InsertOneAsync(conditionToSave);
+            
             return Ok(new
             {
                 success = true,
