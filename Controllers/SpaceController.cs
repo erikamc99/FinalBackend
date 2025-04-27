@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
+using Muuki.Data;
 using Muuki.DTOs;
 using Muuki.Services;
 using System.Security.Claims;
@@ -12,15 +14,17 @@ namespace Muuki.Controllers
     public class SpaceController : ControllerBase
     {
         private readonly SpaceService _spaceService;
+        private readonly MongoContext _context;
 
-        public SpaceController(SpaceService spaceService)
+        public SpaceController(SpaceService spaceService, MongoContext context)
         {
             _spaceService = spaceService;
+            _context = context;
         }
 
         private string GetUserId()
         {
-            return User.FindFirstValue("id") ?? throw new Exception("Usuario no autenticado");
+            return User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new Exception("Usuario no autenticado");
         }
 
         [HttpGet]
@@ -92,6 +96,27 @@ namespace Muuki.Controllers
         {
             await _spaceService.RemoveBreed(GetUserId(), spaceId, dto);
             return Ok("Raza eliminada");
+        }
+
+        [HttpPost("{spaceId}/seed-conditions")]
+        public async Task<IActionResult> SeedConditions(string spaceId, [FromServices] ConditionSeederService seederService)
+        {
+            await seederService.SeedConditionsAsync(spaceId);
+            return Ok(new { message = "Condiciones insertadas correctamente." });
+        }
+
+        [HttpGet("{spaceId}/conditions")]
+        public async Task<IActionResult> GetConditions(string spaceId)
+        {
+            var space = await _context.Spaces.Find(s => s.Id == spaceId).FirstOrDefaultAsync();
+            if (space == null) return NotFound("Espacio no encontrado.");
+
+            var last180Days = space.ConditionHistory
+                .Where(c => c.Timestamp >= DateTime.UtcNow.AddMonths(-6))
+                .OrderBy(c => c.Timestamp)
+                .ToList();
+
+            return Ok(last180Days);
         }
     }
 }
