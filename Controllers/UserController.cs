@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Muuki.Services;
 using Muuki.DTOs;
+using System.Security.Claims;
 
 namespace Muuki.Controllers
 {
@@ -20,7 +21,7 @@ namespace Muuki.Controllers
         [HttpGet("profile")]
         public async Task<IActionResult> GetProfile()
         {
-            var userId = User.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null) return Unauthorized();
 
             var profile = await _auth.GetProfile(userId);

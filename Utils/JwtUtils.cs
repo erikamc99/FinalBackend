@@ -28,9 +28,9 @@ namespace Muuki.Utils
 
             var claims = new[] 
             {
-                new Claim("id", user.Id.ToString()),
-                new Claim("email", user.Email),
-                new Claim("username", user.Username)
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Email, user.Email)
             };
 
             var token = new JwtSecurityToken(
