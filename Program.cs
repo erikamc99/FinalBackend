@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using DotNetEnv;
 using Muuki.Services.Interfaces;
-using MuukiAPI.Middleware;
+using Muuki.Middleware;
 using Muuki.Seed;
 
 Env.Load();

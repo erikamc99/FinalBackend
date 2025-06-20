@@ -1,7 +1,8 @@
 using System.Net;
 using System.Text.Json;
+using Muuki.Exceptions;
 
-namespace MuukiAPI.Middleware
+namespace Muuki.Middleware
 {
     public class ErrorHandlerMiddleware
     {
@@ -21,7 +22,13 @@ namespace MuukiAPI.Middleware
             catch (Exception ex)
             {
                 context.Response.ContentType = "application/json";
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.Response.StatusCode = ex switch
+                {
+                    UnauthorizedException or UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
+                    NotFoundException or KeyNotFoundException => (int)HttpStatusCode.NotFound,
+                    BadRequestException or ArgumentException => (int)HttpStatusCode.BadRequest,
+                    _ => (int)HttpStatusCode.InternalServerError
+                };
 
                 var result = JsonSerializer.Serialize(new
                 {
