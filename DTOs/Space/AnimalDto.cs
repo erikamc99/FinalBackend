@@ -1,20 +1,31 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Muuki.DTOs
 {
     public class AnimalCreateDto
     {
-        public required string Type { get; set; }
+        [Required]
+        public string Type { get; set; }
+
+        [Range(1, int.MaxValue)]
         public int Quantity { get; set; }
+
         public List<string> Breeds { get; set; } = new();
     }
 
     public class AnimalUpdateDto
     {
+        [StringLength(30)]
         public string? Type { get; set; }
+
+        [Range(1, int.MaxValue)]
         public int? Quantity { get; set; }
     }
 
     public class BreedCreateDto
     {
-        public required string BreedName { get; set; }
+        [Required]
+        [StringLength(30)]
+        public string BreedName { get; set; }
     }
 }
