@@ -14,22 +14,6 @@ namespace Muuki.Services
             _context = context;
         }
 
-        private async Task<Space> GetValidatedSpace(string userId, string spaceId)
-        {
-            var space = await GetSpaceById(userId, spaceId);
-            if (space == null)
-                throw new Exception("Espacio no encontrado o no autorizado");
-            return space;
-        }
-
-        private Animal GetValidatedAnimal(Space space, string animalId)
-        {
-            var animal = space.Animals.FirstOrDefault(a => a.Id == animalId);
-            if (animal == null)
-                throw new Exception("Animal no encontrado");
-            return animal;
-        }
-
         public async Task<List<Space>> GetSpacesByUser(string userId)
         {
             return await _context.Spaces.Find(s => s.UserId == userId).ToListAsync();
@@ -74,63 +58,6 @@ namespace Muuki.Services
             var result = await _context.Spaces.DeleteOneAsync(s => s.Id == spaceId && s.UserId == userId);
             if (result.DeletedCount == 0)
                 throw new Exception("Espacio no encontrado o no autorizado");
-        }
-
-        public async Task<Space> AddAnimal(string userId, string spaceId, AddAnimalDto dto)
-        {
-            var space = await GetValidatedSpace(userId, spaceId);
-
-            if (!Constants.AllowedAnimalTypes.Contains(dto.Type))
-                throw new Exception("Tipo de animal no permitido");
-
-            var animal = new Animal
-            {
-                Type = dto.Type,
-                Quantity = dto.Quantity,
-                Breeds = dto.Breeds.Count > 0 ? dto.Breeds : Constants.DefaultBreeds
-            };
-
-            space.Animals.Add(animal);
-            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId && s.UserId == userId, space);
-            return space;
-        }
-
-        public async Task RemoveAnimal(string userId, string spaceId, string animalId)
-        {
-            var space = await GetValidatedSpace(userId, spaceId);
-            var animal = GetValidatedAnimal(space, animalId);
-
-            space.Animals.Remove(animal);
-            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId && s.UserId == userId, space);
-        }
-
-        public async Task UpdateAnimalQuantity(string userId, string spaceId, UpdateAnimalQuantityDto dto)
-        {
-            var space = await GetValidatedSpace(userId, spaceId);
-            var animal = GetValidatedAnimal(space, dto.AnimalId);
-
-            animal.Quantity = dto.Quantity;
-            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId && s.UserId == userId, space);
-        }
-        
-        public async Task AddBreed(string userId, string spaceId, string animalId, string breed)
-        {
-            var space = await GetValidatedSpace(userId, spaceId);
-            var animal = GetValidatedAnimal(space, animalId);
-
-            if (!animal.Breeds.Contains(breed))
-                animal.Breeds.Add(breed);
-
-            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId && s.UserId == userId, space);
-        }
-
-        public async Task RemoveBreed(string userId, string spaceId, string animalId, string breed)
-        {
-            var space = await GetValidatedSpace(userId, spaceId);
-            var animal = GetValidatedAnimal(space, animalId);
-
-            animal.Breeds.Remove(breed);
-            await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId && s.UserId == userId, space);
         }
     }
 }
