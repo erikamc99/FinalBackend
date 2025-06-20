@@ -18,54 +18,11 @@ namespace Muuki.Controllers
             _context = context;
         }
 
-        [HttpGet("{spaceId}/last7days")]
-        public async Task<IActionResult> GetLast7Days(string spaceId)
+        [HttpGet("{spaceId}/history")]
+        public async Task<IActionResult> GetHistory(string spaceId, [FromQuery] int days = 7)
         {
-            var fromDate = DateTime.UtcNow.AddDays(-7);
-            var conditions = await _context.SpaceConditions
-                .Find(c => c.SpaceId == spaceId && c.Timestamp >= fromDate)
-                .SortByDescending(c => c.Timestamp)
-                .ToListAsync();
-            return Ok(conditions);
-        }
-
-        [HttpGet("{spaceId}/last14days")]
-        public async Task<IActionResult> GetLast14Days(string spaceId)
-        {
-            var fromDate = DateTime.UtcNow.AddDays(-14);
-            var conditions = await _context.SpaceConditions
-                .Find(c => c.SpaceId == spaceId && c.Timestamp >= fromDate)
-                .SortByDescending(c => c.Timestamp)
-                .ToListAsync();
-            return Ok(conditions);
-        }
-
-        [HttpGet("{spaceId}/last30days")]
-        public async Task<IActionResult> GetLast30Days(string spaceId)
-        {
-            var fromDate = DateTime.UtcNow.AddDays(-30);
-            var conditions = await _context.SpaceConditions
-                .Find(c => c.SpaceId == spaceId && c.Timestamp >= fromDate)
-                .SortByDescending(c => c.Timestamp)
-                .ToListAsync();
-            return Ok(conditions);
-        }
-
-        [HttpGet("{spaceId}/last90days")]
-        public async Task<IActionResult> GetLast90Days(string spaceId)
-        {
-            var fromDate = DateTime.UtcNow.AddDays(-90);
-            var conditions = await _context.SpaceConditions
-                .Find(c => c.SpaceId == spaceId && c.Timestamp >= fromDate)
-                .SortByDescending(c => c.Timestamp)
-                .ToListAsync();
-            return Ok(conditions);
-        }
-
-        [HttpGet("{spaceId}/last180days")]
-        public async Task<IActionResult> GetLast180Days(string spaceId)
-        {
-            var fromDate = DateTime.UtcNow.AddDays(-180);
+            if (days <= 0) days = 7;
+            var fromDate = DateTime.UtcNow.AddDays(-days);
             var conditions = await _context.SpaceConditions
                 .Find(c => c.SpaceId == spaceId && c.Timestamp >= fromDate)
                 .SortByDescending(c => c.Timestamp)
