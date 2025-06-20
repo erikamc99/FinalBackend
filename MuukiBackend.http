@@ -1,0 +1,6 @@
+@MuukiBackend_HostAddress = http://localhost:5098
+
+GET {{MuukiBackend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
