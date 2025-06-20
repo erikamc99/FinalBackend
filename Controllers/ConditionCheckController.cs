@@ -26,7 +26,7 @@ namespace Muuki.Controllers
         public async Task<IActionResult> CheckSpaceConditions(string spaceId, [FromBody] ConditionEntry currentEntry)
         {
             var space = await _context.Spaces.Find(s => s.Id == spaceId).FirstOrDefaultAsync();
-            if (space == null) return NotFound(new { success = false, message = "Space not found", data = (object)null });
+            if (space == null) return NotFound(new { success = false, message = "Espacio no encontrado", data = (object)null });
 
             var allAnimals = space.Animals;
 
@@ -47,7 +47,7 @@ namespace Muuki.Controllers
             }
 
             if (!idealSettings.Any())
-                throw new NotFoundException("No ideal conditions found for animals in this space");
+                throw new NotFoundException("No hay condiciones ideales en este espacio");
 
             var avgTempMin = idealSettings.Average(c => c.TemperatureMin);
             var avgTempMax = idealSettings.Average(c => c.TemperatureMax);
@@ -82,7 +82,7 @@ namespace Muuki.Controllers
             return Ok(new
             {
                 success = true,
-                message = isOk ? "Conditions are OK" : "Conditions out of ideal range",
+                message = isOk ? "Condiciones ideales" : "Condiciones mejorables",
                 data = new
                 {
                     isOk,

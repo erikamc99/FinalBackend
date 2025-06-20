@@ -45,7 +45,7 @@ namespace Muuki.Services
                 updatedSettings
             );
             if (result.MatchedCount == 0)
-                throw new NotFoundException("Condition settings not found");
+                throw new NotFoundException("Configuración de condiciones no encontrada");
         }
 
         public async Task Delete(string id)
@@ -55,7 +55,7 @@ namespace Muuki.Services
                 c => c.Id == objectId
             );
             if (result.DeletedCount == 0)
-                throw new NotFoundException("Condition settings not found");
+                throw new NotFoundException("Configuración de condiciones no encontrada");
         }
     }
 }

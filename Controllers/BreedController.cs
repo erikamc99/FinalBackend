@@ -20,7 +20,7 @@ namespace Muuki.Controllers
 
         private string GetUserId()
         {
-            return User.FindFirstValue("id") ?? throw new Exception("User not authenticated");
+            return User.FindFirstValue("id") ?? throw new Exception("Usuario no autenticado");
         }
 
         [HttpGet("{spaceId}/animals/{animalId}")]
@@ -34,14 +34,14 @@ namespace Muuki.Controllers
         public async Task<IActionResult> AddBreed(string spaceId, string animalId, BreedCreateDto dto)
         {
             await _breedService.AddBreed(GetUserId(), spaceId, animalId, dto.BreedName);
-            return Ok("Breed added");
+            return Ok("Raza añadida");
         }
 
         [HttpDelete("{spaceId}/animals/{animalId}/{breedName}")]
         public async Task<IActionResult> RemoveBreed(string spaceId, string animalId, string breedName)
         {
             await _breedService.RemoveBreed(GetUserId(), spaceId, animalId, breedName);
-            return Ok("Breed removed");
+            return Ok("Raza eliminada correctamente");
         }
     }
 }

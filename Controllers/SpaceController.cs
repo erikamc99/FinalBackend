@@ -49,14 +49,14 @@ namespace Muuki.Controllers
         public async Task<IActionResult> UpdateSpace(string spaceId, UpdateSpaceDto dto)
         {
             await _spaceService.UpdateSpace(GetUserId(), spaceId, dto);
-            return Ok("Espacio actualizado");
+            return Ok("Espacio actualizado con éxito");
         }
 
         [HttpDelete("{spaceId}")]
         public async Task<IActionResult> DeleteSpace(string spaceId)
         {
             await _spaceService.DeleteSpace(GetUserId(), spaceId);
-            return Ok("Espacio eliminado");
+            return Ok("Espacio eliminado con éxito");
         }
     }
 }
