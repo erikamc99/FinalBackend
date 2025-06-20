@@ -2,6 +2,7 @@ using Muuki.DTOs;
 using Muuki.Models;
 using Muuki.Data;
 using Muuki.Services.Interfaces;
+using Muuki.Exceptions;
 using MongoDB.Driver;
 
 namespace Muuki.Services
@@ -31,7 +32,7 @@ namespace Muuki.Services
         {
             var space = await _context.Spaces.Find(s => s.Id == spaceId && s.UserId == userId).FirstOrDefaultAsync();
             if (space == null)
-                throw new Exception("Espacio no encontrado o no autorizado");
+                throw new NotFoundException("Espacio no encontrado o no autorizado");
 
             var animal = new Animal
             {
@@ -50,7 +51,7 @@ namespace Muuki.Services
             var spaces = await _context.Spaces.Find(s => s.UserId == userId).ToListAsync();
             var space = spaces.FirstOrDefault(s => s.Animals.Any(a => a.Id == animalId));
             if (space == null)
-                throw new Exception("Animal o espacio no encontrado o no autorizado");
+                throw new NotFoundException("Animal o espacio no encontrado o no autorizado");
 
             var animal = space.Animals.First(a => a.Id == animalId);
 
@@ -66,7 +67,7 @@ namespace Muuki.Services
             var spaces = await _context.Spaces.Find(s => s.UserId == userId).ToListAsync();
             var space = spaces.FirstOrDefault(s => s.Animals.Any(a => a.Id == animalId));
             if (space == null)
-                throw new Exception("Animal o espacio no encontrado o no autorizado");
+                throw new NotFoundException("Animal o espacio no encontrado o no autorizado");
 
             var animal = space.Animals.First(a => a.Id == animalId);
             space.Animals.Remove(animal);

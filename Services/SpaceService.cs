@@ -1,6 +1,7 @@
 using Muuki.Models;
 using Muuki.Data;
 using Muuki.DTOs;
+using Muuki.Exceptions;
 using MongoDB.Driver;
 
 namespace Muuki.Services
@@ -27,7 +28,7 @@ namespace Muuki.Services
         public async Task<Space> CreateSpace(string userId, CreateSpaceDto dto)
         {
             if (!Constants.AllowedSpaceTypes.Contains(dto.Type))
-                throw new Exception("Tipo de espacio no permitido");
+                throw new BadRequestException("Tipo de espacio no permitido");
 
             var space = new Space
             {
@@ -50,14 +51,14 @@ namespace Muuki.Services
             );
 
             if (result.MatchedCount == 0)
-                throw new Exception("Espacio no encontrado o no autorizado");
+                throw new NotFoundException("Espacio no encontrado o no autorizado");
         }
 
         public async Task DeleteSpace(string userId, string spaceId)
         {
             var result = await _context.Spaces.DeleteOneAsync(s => s.Id == spaceId && s.UserId == userId);
             if (result.DeletedCount == 0)
-                throw new Exception("Espacio no encontrado o no autorizado");
+                throw new NotFoundException("Espacio no encontrado o no autorizado");
         }
     }
 }

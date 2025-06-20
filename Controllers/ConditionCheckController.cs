@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Muuki.Models;
 using Muuki.Services;
 using Muuki.Data;
+using Muuki.Exceptions;
 using MongoDB.Driver;
 
 namespace Muuki.Controllers
@@ -46,7 +47,7 @@ namespace Muuki.Controllers
             }
 
             if (!idealSettings.Any())
-                return BadRequest(new { success = false, message = "No ideal conditions found for animals in this space", data = (object)null });
+                throw new NotFoundException("No ideal conditions found for animals in this space");
 
             var avgTempMin = idealSettings.Average(c => c.TemperatureMin);
             var avgTempMax = idealSettings.Average(c => c.TemperatureMax);

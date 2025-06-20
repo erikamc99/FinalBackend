@@ -1,5 +1,6 @@
 using Muuki.Models;
 using Muuki.Data;
+using Muuki.Exceptions;
 using MongoDB.Driver;
 
 namespace Muuki.Services
@@ -38,17 +39,23 @@ namespace Muuki.Services
 
         public async Task Update(string id, ConditionSettings updatedSettings)
         {
-            await _context.ConditionSettings.ReplaceOneAsync(
-                c => c.Id == MongoDB.Bson.ObjectId.Parse(id),
+            var objectId = MongoDB.Bson.ObjectId.Parse(id);
+            var result = await _context.ConditionSettings.ReplaceOneAsync(
+                c => c.Id == objectId,
                 updatedSettings
             );
+            if (result.MatchedCount == 0)
+                throw new NotFoundException("Condition settings not found");
         }
 
         public async Task Delete(string id)
         {
-            await _context.ConditionSettings.DeleteOneAsync(
-                c => c.Id == MongoDB.Bson.ObjectId.Parse(id)
+            var objectId = MongoDB.Bson.ObjectId.Parse(id);
+            var result = await _context.ConditionSettings.DeleteOneAsync(
+                c => c.Id == objectId
             );
+            if (result.DeletedCount == 0)
+                throw new NotFoundException("Condition settings not found");
         }
     }
 }

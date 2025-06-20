@@ -1,7 +1,7 @@
 using Muuki.Models;
 using Muuki.DTOs;
 using Muuki.Data;
-using Muuki.Utils;
+using Muuki.Exceptions;
 using MongoDB.Driver;
 
 namespace Muuki.Services
@@ -20,7 +20,7 @@ namespace Muuki.Services
         public async Task<string> Register(RegisterDto dto)
         {
             var exists = await _context.Users.Find(u => u.Email == dto.Email).FirstOrDefaultAsync();
-            if (exists != null) throw new Exception("Usuario ya registrado");
+            if (exists != null) throw new BadRequestException("Usuario ya registrado");
 
             var user = new User
             {
@@ -37,21 +37,9 @@ namespace Muuki.Services
 
         public async Task<string> Login(LoginDto dto)
         {
-            if (string.IsNullOrEmpty(dto.Email) && string.IsNullOrEmpty(dto.Username))
-                throw new Exception("Debe ingresar email o nombre de usuario");
-
-            var filterBuilder = Builders<User>.Filter;
-            FilterDefinition<User> filter;
-
-            if (!string.IsNullOrEmpty(dto.Email))
-                filter = filterBuilder.Eq(u => u.Email, dto.Email);
-            else
-                filter = filterBuilder.Eq(u => u.Username, dto.Username);
-
-            var user = await _context.Users.Find(filter).FirstOrDefaultAsync();
-            
+            var user = await _context.Users.Find(u => u.Email == dto.Email).FirstOrDefaultAsync();
             if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-                throw new Exception("Credenciales inválidas");
+                throw new UnauthorizedException("Credenciales inválidas");
 
             return _jwt.GenerateToken(user);
         }
@@ -60,7 +48,7 @@ namespace Muuki.Services
         {
             var objectId = MongoDB.Bson.ObjectId.Parse(userId);
             var user = await _context.Users.Find(u => u.Id == objectId).FirstOrDefaultAsync();
-            if (user == null) throw new Exception("Usuario no encontrado");
+            if (user == null) throw new NotFoundException("Usuario no encontrado");
             return user;
         }
 
@@ -83,7 +71,7 @@ namespace Muuki.Services
                 u => u.Id == objectId,
                 update);
 
-            if (result.MatchedCount == 0) throw new Exception("Usuario no encontrado");
+            if (result.MatchedCount == 0) throw new NotFoundException("Usuario no encontrado");
 
             return await GetProfile(userId);
         }
