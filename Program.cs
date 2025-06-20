@@ -28,6 +28,7 @@ builder.Services.AddScoped<ConditionSeederService>();
 builder.Services.AddScoped<IAnimalService, AnimalService>();
 builder.Services.AddScoped<IBreedService, BreedService>();
 builder.Services.AddScoped<ConditionSettingsService>();
+builder.Services.AddScoped<ConditionEvaluatorService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

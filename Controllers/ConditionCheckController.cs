@@ -13,10 +13,12 @@ namespace Muuki.Controllers
     public class ConditionCheckController : ControllerBase
     {
         private readonly MongoContext _context;
+        private readonly ConditionEvaluatorService _evaluator;
 
-        public ConditionCheckController(MongoContext context)
+        public ConditionCheckController(MongoContext context, ConditionEvaluatorService evaluator)
         {
             _context = context;
+            _evaluator = evaluator;
         }
 
         [HttpPost("{spaceId}")]
@@ -52,8 +54,6 @@ namespace Muuki.Controllers
             var avgHumidityMax = idealSettings.Average(c => c.HumidityMax);
             var avgPollutionMax = idealSettings.Average(c => c.PollutionMax);
 
-            var evaluator = new ConditionEvaluatorService();
-
             var ideal = new ConditionSettings
             {
                 TemperatureMin = avgTempMin,
@@ -65,7 +65,7 @@ namespace Muuki.Controllers
                 Breed = "Mixed"
             };
 
-            var isOk = evaluator.IsConditionOk(currentEntry, ideal);
+            var isOk = _evaluator.IsConditionOk(currentEntry, ideal);
 
             var conditionToSave = new SpaceConditionEntry
             {
@@ -77,7 +77,7 @@ namespace Muuki.Controllers
             };
 
             await _context.SpaceConditions.InsertOneAsync(conditionToSave);
-            
+
             return Ok(new
             {
                 success = true,
