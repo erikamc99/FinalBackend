@@ -2,7 +2,7 @@ using System.Net;
 using System.Text.Json;
 using Muuki.Exceptions;
 
-namespace Muuki.Middleware
+namespace Muuki.Exceptions
 {
     public class ErrorHandlerMiddleware
     {
