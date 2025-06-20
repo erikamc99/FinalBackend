@@ -1,5 +1,5 @@
-using Muuki.Models;
 using Muuki.DTOs;
+using Muuki.Models;
 using Muuki.Data;
 using Muuki.Services.Interfaces;
 using MongoDB.Driver;
@@ -30,39 +30,34 @@ namespace Muuki.Services
         public async Task<List<Animal>> CreateAnimals(string userId, string spaceId, AnimalCreateDto dto)
         {
             var space = await _context.Spaces.Find(s => s.Id == spaceId && s.UserId == userId).FirstOrDefaultAsync();
-            if (space == null) throw new Exception("Space not found");
+            if (space == null)
+                throw new Exception("Espacio no encontrado o no autorizado");
 
-            var newAnimals = new List<Animal>();
-            for (int i = 0; i < dto.Quantity; i++)
+            var animal = new Animal
             {
-                newAnimals.Add(new Animal
-                {
-                    Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(),
-                    Type = dto.Type,
-                    Breeds = new List<string> { dto.Breed },
-                    Quantity = 1
-                });
-            }
+                Type = dto.Type,
+                Quantity = dto.Quantity,
+                Breeds = dto.Breeds.Count > 0 ? dto.Breeds : Constants.DefaultBreeds
+            };
 
-            space.Animals.AddRange(newAnimals);
+            space.Animals.Add(animal);
             await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId && s.UserId == userId, space);
-
-            return newAnimals;
+            return space.Animals;
         }
 
         public async Task<Animal> UpdateAnimal(string userId, string animalId, AnimalUpdateDto dto)
         {
             var spaces = await _context.Spaces.Find(s => s.UserId == userId).ToListAsync();
             var space = spaces.FirstOrDefault(s => s.Animals.Any(a => a.Id == animalId));
-
-            if (space == null) throw new Exception("Space or animal not found");
+            if (space == null)
+                throw new Exception("Animal o espacio no encontrado o no autorizado");
 
             var animal = space.Animals.First(a => a.Id == animalId);
-            animal.Type = dto.Type;
-            animal.Breeds = new List<string> { dto.Breed };
+
+            if (dto.Quantity.HasValue) animal.Quantity = dto.Quantity.Value;
+            if (!string.IsNullOrEmpty(dto.Type)) animal.Type = dto.Type;
 
             await _context.Spaces.ReplaceOneAsync(s => s.Id == space.Id && s.UserId == userId, space);
-
             return animal;
         }
 
@@ -70,14 +65,14 @@ namespace Muuki.Services
         {
             var spaces = await _context.Spaces.Find(s => s.UserId == userId).ToListAsync();
             var space = spaces.FirstOrDefault(s => s.Animals.Any(a => a.Id == animalId));
-
-            if (space == null) throw new Exception("Space or animal not found");
+            if (space == null)
+                throw new Exception("Animal o espacio no encontrado o no autorizado");
 
             var animal = space.Animals.First(a => a.Id == animalId);
             space.Animals.Remove(animal);
 
-            await _context.Spaces.ReplaceOneAsync(s => s.Id == space.Id && s.UserId == userId, space);
-            return true;
+            var result = await _context.Spaces.ReplaceOneAsync(s => s.Id == space.Id && s.UserId == userId, space);
+            return result.IsAcknowledged && result.ModifiedCount > 0;
         }
     }
 }
