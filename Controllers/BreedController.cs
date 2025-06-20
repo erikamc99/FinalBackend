@@ -23,24 +23,24 @@ namespace Muuki.Controllers
             return User.FindFirstValue("id") ?? throw new Exception("User not authenticated");
         }
 
-        [HttpGet("{spaceId}")]
-        public async Task<IActionResult> GetBreeds(string spaceId)
+        [HttpGet("{spaceId}/animals/{animalId}")]
+        public async Task<IActionResult> GetBreeds(string spaceId, string animalId)
         {
-            var breeds = await _breedService.GetBreeds(GetUserId(), spaceId);
+            var breeds = await _breedService.GetBreeds(GetUserId(), spaceId, animalId);
             return Ok(breeds);
         }
 
-        [HttpPost("{spaceId}")]
-        public async Task<IActionResult> AddBreed(string spaceId, BreedCreateDto dto)
+        [HttpPost("{spaceId}/animals/{animalId}")]
+        public async Task<IActionResult> AddBreed(string spaceId, string animalId, BreedCreateDto dto)
         {
-            await _breedService.AddBreed(GetUserId(), spaceId, dto.BreedName);
+            await _breedService.AddBreed(GetUserId(), spaceId, animalId, dto.BreedName);
             return Ok("Breed added");
         }
 
-        [HttpDelete("{spaceId}/{breedName}")]
-        public async Task<IActionResult> RemoveBreed(string spaceId, string breedName)
+        [HttpDelete("{spaceId}/animals/{animalId}/{breedName}")]
+        public async Task<IActionResult> RemoveBreed(string spaceId, string animalId, string breedName)
         {
-            await _breedService.RemoveBreed(GetUserId(), spaceId, breedName);
+            await _breedService.RemoveBreed(GetUserId(), spaceId, animalId, breedName);
             return Ok("Breed removed");
         }
     }

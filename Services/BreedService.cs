@@ -14,39 +14,41 @@ namespace Muuki.Services
             _context = context;
         }
 
-        public async Task<List<string>> GetBreeds(string userId, string spaceId)
+        public async Task<List<string>> GetBreeds(string userId, string spaceId, string animalId)
         {
             var space = await _context.Spaces.Find(s => s.Id == spaceId && s.UserId == userId).FirstOrDefaultAsync();
             if (space == null) throw new Exception("Space not found");
 
-            return space.Animals.SelectMany(a => a.Breeds).Distinct().ToList();
+            var animal = space.Animals.FirstOrDefault(a => a.Id == animalId);
+            if (animal == null) throw new Exception("Animal not found");
+
+            return animal.Breeds;
         }
 
-        public async Task AddBreed(string userId, string spaceId, string breedName)
+        public async Task AddBreed(string userId, string spaceId, string animalId, string breedName)
         {
             var space = await _context.Spaces.Find(s => s.Id == spaceId && s.UserId == userId).FirstOrDefaultAsync();
             if (space == null) throw new Exception("Space not found");
 
-            if (!space.Animals.SelectMany(a => a.Breeds).Contains(breedName))
+            var animal = space.Animals.FirstOrDefault(a => a.Id == animalId);
+            if (animal == null) throw new Exception("Animal not found");
+
+            if (!animal.Breeds.Contains(breedName))
             {
-                foreach (var animal in space.Animals)
-                {
-                    animal.Breeds.Add(breedName);
-                }
+                animal.Breeds.Add(breedName);
                 await _context.Spaces.ReplaceOneAsync(s => s.Id == space.Id && s.UserId == userId, space);
             }
         }
 
-        public async Task RemoveBreed(string userId, string spaceId, string breedName)
+        public async Task RemoveBreed(string userId, string spaceId, string animalId, string breedName)
         {
             var space = await _context.Spaces.Find(s => s.Id == spaceId && s.UserId == userId).FirstOrDefaultAsync();
             if (space == null) throw new Exception("Space not found");
 
-            foreach (var animal in space.Animals)
-            {
-                animal.Breeds.Remove(breedName);
-            }
+            var animal = space.Animals.FirstOrDefault(a => a.Id == animalId);
+            if (animal == null) throw new Exception("Animal not found");
 
+            animal.Breeds.Remove(breedName);
             await _context.Spaces.ReplaceOneAsync(s => s.Id == space.Id && s.UserId == userId, space);
         }
     }
