@@ -11,11 +11,6 @@ namespace Muuki.DTOs
         public required string Name { get; set; }
     }
 
-    public class RemoveSpaceDto
-    {
-        public required string SpaceId { get; set; }
-    }
-
     public class AddAnimalDto
     {
         public required string Type { get; set; }
@@ -27,11 +22,6 @@ namespace Muuki.DTOs
     {
         public required string AnimalId { get; set; }
         public int Quantity { get; set; }
-    }
-
-    public class RemoveAnimalDto
-    {
-        public required string AnimalId { get; set; }
     }
 
     public class AddBreedDto
