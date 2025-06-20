@@ -8,8 +8,8 @@ namespace Muuki.Models
         [BsonElement("id")]
         public string Id { get; set; } = ObjectId.GenerateNewId().ToString();
 
-        [BsonElement("type")]
-        public string Type { get; set; } = string.Empty;
+        [BsonElement("species")]
+        public string Species { get; set; } = string.Empty;
 
         [BsonElement("breeds")]
         public List<string> Breeds { get; set; } = new();

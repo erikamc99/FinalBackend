@@ -15,7 +15,7 @@ namespace Muuki.Models
         [BsonElement("name")]
         public string Name { get; set; } = string.Empty;
 
-        [BsonElement("Type")]
+        [BsonElement("type")]
         public string Type { get; set; } = string.Empty;
 
         [BsonElement("animals")]
