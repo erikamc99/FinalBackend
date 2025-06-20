@@ -23,16 +23,4 @@ namespace Muuki.DTOs
         public required string AnimalId { get; set; }
         public int Quantity { get; set; }
     }
-
-    public class AddBreedDto
-    {
-        public required string AnimalId { get; set; }
-        public required string Breed { get; set; }
-    }
-
-    public class RemoveBreedDto
-    {
-        public required string AnimalId { get; set; }
-        public required string Breed { get; set; }
-    }
 }
