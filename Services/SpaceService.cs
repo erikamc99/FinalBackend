@@ -14,6 +14,22 @@ namespace Muuki.Services
             _context = context;
         }
 
+        private async Task<Space> GetValidatedSpace(string userId, string spaceId)
+        {
+            var space = await GetSpaceById(userId, spaceId);
+            if (space == null)
+                throw new Exception("Espacio no encontrado o no autorizado");
+            return space;
+        }
+
+        private Animal GetValidatedAnimal(Space space, string animalId)
+        {
+            var animal = space.Animals.FirstOrDefault(a => a.Id == animalId);
+            if (animal == null)
+                throw new Exception("Animal no encontrado");
+            return animal;
+        }
+
         public async Task<List<Space>> GetSpacesByUser(string userId)
         {
             return await _context.Spaces.Find(s => s.UserId == userId).ToListAsync();
@@ -62,8 +78,7 @@ namespace Muuki.Services
 
         public async Task<Space> AddAnimal(string userId, string spaceId, AddAnimalDto dto)
         {
-            var space = await GetSpaceById(userId, spaceId);
-            if (space == null) throw new Exception("Espacio no encontrado o no autorizado");
+            var space = await GetValidatedSpace(userId, spaceId);
 
             if (!Constants.AllowedAnimalTypes.Contains(dto.Type))
                 throw new Exception("Tipo de animal no permitido");
@@ -82,11 +97,8 @@ namespace Muuki.Services
 
         public async Task RemoveAnimal(string userId, string spaceId, string animalId)
         {
-            var space = await GetSpaceById(userId, spaceId);
-            if (space == null) throw new Exception("Espacio no encontrado o no autorizado");
-
-            var animal = space.Animals.FirstOrDefault(a => a.Id == animalId);
-            if (animal == null) throw new Exception("Animal no encontrado");
+            var space = await GetValidatedSpace(userId, spaceId);
+            var animal = GetValidatedAnimal(space, animalId);
 
             space.Animals.Remove(animal);
             await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId && s.UserId == userId, space);
@@ -94,11 +106,8 @@ namespace Muuki.Services
 
         public async Task UpdateAnimalQuantity(string userId, string spaceId, UpdateAnimalQuantityDto dto)
         {
-            var space = await GetSpaceById(userId, spaceId);
-            if (space == null) throw new Exception("Espacio no encontrado o no autorizado");
-
-            var animal = space.Animals.FirstOrDefault(a => a.Id == dto.AnimalId);
-            if (animal == null) throw new Exception("Animal no encontrado");
+            var space = await GetValidatedSpace(userId, spaceId);
+            var animal = GetValidatedAnimal(space, dto.AnimalId);
 
             animal.Quantity = dto.Quantity;
             await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId && s.UserId == userId, space);
@@ -106,11 +115,8 @@ namespace Muuki.Services
 
         public async Task AddBreed(string userId, string spaceId, AddBreedDto dto)
         {
-            var space = await GetSpaceById(userId, spaceId);
-            if (space == null) throw new Exception("Espacio no encontrado o no autorizado");
-
-            var animal = space.Animals.FirstOrDefault(a => a.Id == dto.AnimalId);
-            if (animal == null) throw new Exception("Animal no encontrado");
+            var space = await GetValidatedSpace(userId, spaceId);
+            var animal = GetValidatedAnimal(space, dto.AnimalId);
 
             if (!animal.Breeds.Contains(dto.Breed))
                 animal.Breeds.Add(dto.Breed);
@@ -120,59 +126,11 @@ namespace Muuki.Services
 
         public async Task RemoveBreed(string userId, string spaceId, RemoveBreedDto dto)
         {
-            var space = await GetSpaceById(userId, spaceId);
-            if (space == null) throw new Exception("Espacio no encontrado o no autorizado");
-
-            var animal = space.Animals.FirstOrDefault(a => a.Id == dto.AnimalId);
-            if (animal == null) throw new Exception("Animal no encontrado");
+            var space = await GetValidatedSpace(userId, spaceId);
+            var animal = GetValidatedAnimal(space, dto.AnimalId);
 
             animal.Breeds.Remove(dto.Breed);
             await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId && s.UserId == userId, space);
         }
-
-        public async Task<bool> CheckSpaceConditions(string spaceId, ConditionEntry currentEntry)
-        {
-            var space = await _context.Spaces.Find(s => s.Id == spaceId).FirstOrDefaultAsync();
-            if (space == null) throw new Exception("Space not found");
-
-            var allAnimals = space.Animals;
-
-            var idealSettings = new List<ConditionSettings>();
-
-            foreach (var animal in allAnimals)
-            {
-                var setting = await _context.ConditionSettings
-                    .Find(c => c.Type == animal.Type && c.Breed == animal.Breeds.FirstOrDefault())
-                    .FirstOrDefaultAsync();
-
-                if (setting != null)
-                    idealSettings.Add(setting);
-            }
-
-            if (!idealSettings.Any())
-                throw new Exception("No ConditionSettings found for animals in this space");
-
-            var avgTempMin = idealSettings.Average(c => c.TemperatureMin);
-            var avgTempMax = idealSettings.Average(c => c.TemperatureMax);
-            var avgHumidityMin = idealSettings.Average(c => c.HumidityMin);
-            var avgHumidityMax = idealSettings.Average(c => c.HumidityMax);
-            var avgPollutionMax = idealSettings.Average(c => c.PollutionMax);
-
-            var evaluator = new ConditionEvaluatorService();
-
-            var ideal = new ConditionSettings
-            {
-                Type = "DefaultType",
-                Breed = "DefaultBreed",
-                TemperatureMin = avgTempMin,
-                TemperatureMax = avgTempMax,
-                HumidityMin = avgHumidityMin,
-                HumidityMax = avgHumidityMax,
-                PollutionMax = avgPollutionMax
-            };
-
-            return evaluator.IsConditionOk(currentEntry, ideal);
-        }
-
     }
 }
