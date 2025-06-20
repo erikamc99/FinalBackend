@@ -20,7 +20,7 @@ namespace Muuki.Controllers
 
         private string GetUserId()
         {
-            return User.FindFirstValue("id") ?? throw new Exception("User not authenticated");
+            return User.FindFirstValue("id") ?? throw new Exception("Usuario no autenticado");
         }
 
         [HttpPost("{spaceId}")]
@@ -56,7 +56,7 @@ namespace Muuki.Controllers
         public async Task<IActionResult> DeleteAnimal(string animalId)
         {
             await _animalService.DeleteAnimal(GetUserId(), animalId);
-            return Ok("Animal deleted");
+            return Ok("Animal eliminado correctamente");
         }
     }
 }
