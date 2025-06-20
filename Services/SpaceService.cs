@@ -112,24 +112,24 @@ namespace Muuki.Services
             animal.Quantity = dto.Quantity;
             await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId && s.UserId == userId, space);
         }
-
-        public async Task AddBreed(string userId, string spaceId, AddBreedDto dto)
+        
+        public async Task AddBreed(string userId, string spaceId, string animalId, string breed)
         {
             var space = await GetValidatedSpace(userId, spaceId);
-            var animal = GetValidatedAnimal(space, dto.AnimalId);
+            var animal = GetValidatedAnimal(space, animalId);
 
-            if (!animal.Breeds.Contains(dto.Breed))
-                animal.Breeds.Add(dto.Breed);
+            if (!animal.Breeds.Contains(breed))
+                animal.Breeds.Add(breed);
 
             await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId && s.UserId == userId, space);
         }
 
-        public async Task RemoveBreed(string userId, string spaceId, RemoveBreedDto dto)
+        public async Task RemoveBreed(string userId, string spaceId, string animalId, string breed)
         {
             var space = await GetValidatedSpace(userId, spaceId);
-            var animal = GetValidatedAnimal(space, dto.AnimalId);
+            var animal = GetValidatedAnimal(space, animalId);
 
-            animal.Breeds.Remove(dto.Breed);
+            animal.Breeds.Remove(breed);
             await _context.Spaces.ReplaceOneAsync(s => s.Id == spaceId && s.UserId == userId, space);
         }
     }
