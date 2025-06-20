@@ -2,7 +2,7 @@ namespace Muuki.Models
 {
     public static class Constants
     {
-        public static readonly List<string> AllowedAnimalTypes = new()
+        public static readonly List<string> AllowedSpecies = new()
         {
             "Gallo",
             "Gallina",

@@ -5,7 +5,7 @@ namespace Muuki.DTOs
     public class AnimalCreateDto
     {
         [Required]
-        public string Type { get; set; }
+        public string Species { get; set; }
 
         [Range(1, int.MaxValue)]
         public int Quantity { get; set; }
@@ -16,7 +16,7 @@ namespace Muuki.DTOs
     public class AnimalUpdateDto
     {
         [StringLength(30)]
-        public string? Type { get; set; }
+        public string? Species { get; set; }
 
         [Range(1, int.MaxValue)]
         public int? Quantity { get; set; }

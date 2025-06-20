@@ -22,7 +22,7 @@ namespace Muuki.DTOs
     public class AddAnimalDto
     {
         [Required]
-        public string Type { get; set; }
+        public string Species { get; set; }
 
         [Range(1, int.MaxValue)]
         public int Quantity { get; set; }

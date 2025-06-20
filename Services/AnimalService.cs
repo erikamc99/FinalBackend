@@ -36,7 +36,7 @@ namespace Muuki.Services
 
             var animal = new Animal
             {
-                Type = dto.Type,
+                Species = dto.Species,
                 Quantity = dto.Quantity,
                 Breeds = dto.Breeds.Count > 0 ? dto.Breeds : Constants.DefaultBreeds
             };
@@ -56,7 +56,7 @@ namespace Muuki.Services
             var animal = space.Animals.First(a => a.Id == animalId);
 
             if (dto.Quantity.HasValue) animal.Quantity = dto.Quantity.Value;
-            if (!string.IsNullOrEmpty(dto.Type)) animal.Type = dto.Type;
+            if (!string.IsNullOrEmpty(dto.Species)) animal.Species = dto.Species;
 
             await _context.Spaces.ReplaceOneAsync(s => s.Id == space.Id && s.UserId == userId, space);
             return animal;
